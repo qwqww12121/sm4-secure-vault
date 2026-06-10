@@ -112,6 +112,16 @@ def _round_keys(key: bytes) -> list[int]:
     return rks
 
 
+def expand_key(key: bytes) -> list[int]:
+    """Expand a 16-byte SM4 key once for repeated block operations."""
+    return _round_keys(key)
+
+
+def _validate_round_keys(round_keys: list[int]) -> None:
+    if len(round_keys) != 32:
+        raise ValueError("SM4 round key list must contain exactly 32 words")
+
+
 def _crypt_block(block: bytes, round_keys: list[int]) -> bytes:
     x = _bytes_to_words(block)
     for i in range(32):
@@ -120,13 +130,29 @@ def _crypt_block(block: bytes, round_keys: list[int]) -> bytes:
     return _words_to_bytes([x[35], x[34], x[33], x[32]])
 
 
+def sm4_encrypt_block_with_round_keys(block: bytes, round_keys: list[int]) -> bytes:
+    """Encrypt one block with pre-expanded SM4 round keys."""
+    if len(block) != BLOCK_SIZE:
+        raise ValueError("SM4 block must be exactly 16 bytes")
+    _validate_round_keys(round_keys)
+    return _crypt_block(block, round_keys)
+
+
+def sm4_decrypt_block_with_round_keys(block: bytes, round_keys: list[int]) -> bytes:
+    """Decrypt one block with pre-expanded SM4 round keys."""
+    if len(block) != BLOCK_SIZE:
+        raise ValueError("SM4 block must be exactly 16 bytes")
+    _validate_round_keys(round_keys)
+    return _crypt_block(block, list(reversed(round_keys)))
+
+
 def sm4_encrypt_block(block: bytes, key: bytes) -> bytes:
     """Encrypt one 16-byte block with a 16-byte SM4 key."""
     _validate_block_and_key(block, key)
-    return _crypt_block(block, _round_keys(key))
+    return sm4_encrypt_block_with_round_keys(block, expand_key(key))
 
 
 def sm4_decrypt_block(block: bytes, key: bytes) -> bytes:
     """Decrypt one 16-byte block with a 16-byte SM4 key."""
     _validate_block_and_key(block, key)
-    return _crypt_block(block, list(reversed(_round_keys(key))))
+    return sm4_decrypt_block_with_round_keys(block, expand_key(key))
