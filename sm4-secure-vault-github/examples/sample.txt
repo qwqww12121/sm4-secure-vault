@@ -1,0 +1,4 @@
+这是密码学导论课程大作业的测试文件。
+This is a test file for SM4 secure vault.
+
+本项目演示：自实现 SM4、SM4-CBC、PKCS#7 填充、PBKDF2 口令派生、加密索引与本地文件对象存储。

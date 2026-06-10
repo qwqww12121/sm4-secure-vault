@@ -1,0 +1,3 @@
+# Core project: no required third-party dependencies.
+# Optional plotting support:
+# matplotlib>=3.8
